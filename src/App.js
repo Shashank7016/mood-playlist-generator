@@ -1,23 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import axios from 'axios';
 
 function App() {
+  const [moodText, setMoodText] = useState('');
+  const [playlist, setPlaylist] = useState(null);
+
+  const handleSubmit = async () => {
+    try {
+      console.log(`Sending mood text to backend: ${moodText}`);
+      const response = await axios.post('/analyze-mood', { text: moodText });
+      const mood = response.data.mood;
+      console.log(`Received mood from backend: ${mood}`);
+
+      const playlistResponse = await axios.get(`/playlist?mood=${mood}`);
+      console.log(`Received playlist from backend: ${playlistResponse.data.playlist}`);
+      setPlaylist(playlistResponse.data.playlist);
+    } catch (error) {
+      console.error('Error fetching playlist:', error);
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Mood-Based Playlist Generator</h1>
+      <textarea
+        value={moodText}
+        onChange={(e) => setMoodText(e.target.value)}
+        placeholder="Describe your mood..."
+      />
+      <button onClick={handleSubmit}>Generate Playlist</button>
+      <div>
+        {playlist ? (
+          <div>
+            <h2>{playlist.name}</h2>
+            <a href={playlist.tracks}>View Playlist</a>
+          </div>
+        ) : (
+          <p>No playlist available</p>
+        )}
+      </div>
     </div>
   );
 }
