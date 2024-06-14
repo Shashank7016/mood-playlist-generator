@@ -1,15 +1,21 @@
-from textblob import TextBlob
-import sys
+from transformers import pipeline
 
-text = sys.argv[1]
-blob = TextBlob(text)
-polarity = blob.sentiment.polarity
+classifier = pipeline('sentiment-analysis')
 
-if polarity > 0.1:
-    mood = 'happy'
-elif polarity < -0.1:
-    mood = 'sad'
-else:
-    mood = 'neutral'
+def analyze_mood(text):
+    result = classifier(text)[0]
+    sentiment = result['label']
+    score = result['score']
+    
+    if sentiment == 'POSITIVE' and score > 0.7:
+        return 'happy'
+    elif sentiment == 'NEGATIVE' and score > 0.7:
+        return 'sad'
+    else:
+        return 'neutral'
 
-print(mood)
+if __name__ == "__main__":
+    import sys
+    text = sys.argv[1]
+    mood = analyze_mood(text)
+    print(mood)
