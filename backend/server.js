@@ -27,6 +27,10 @@ spotifyApi.clientCredentialsGrant().then(
   }
 );
 
+app.get('/token', (req, res) => {
+  res.json({ accessToken });
+});
+
 app.post('/analyze-mood', (req, res) => {
   const { text } = req.body;
   console.log(`Received text for mood analysis: ${text}`);
@@ -71,13 +75,27 @@ async function getPlaylistFromSpotify(mood) {
       playlistName = 'Top Hits';
   }
   console.log(`Searching Spotify for playlist: ${playlistName}`);
-  const data = await spotifyApi.searchPlaylists(playlistName);
-  const playlist = data.body.playlists.items[0];
-  console.log(`Found playlist: ${playlist.name}`);
-  return {
-    name: playlist.name,
-    url: playlist.external_urls.spotify,
-  };
+  try {
+    const data = await spotifyApi.searchPlaylists(playlistName);
+    const playlist = data.body.playlists.items[0];
+    console.log(`Found playlist: ${playlist.name}`);
+
+    // Fetch tracks for the playlist
+    const tracksData = await spotifyApi.getPlaylistTracks(playlist.id);
+    const tracks = tracksData.body.items.map(item => ({
+      name: item.track.name,
+      artist: item.track.artists.map(artist => artist.name).join(', '),
+      uri: item.track.uri
+    }));
+
+    return {
+      name: playlist.name,
+      tracks
+    };
+  } catch (error) {
+    console.error('Error searching for playlist:', error);
+    throw new Error('Error searching for playlist');
+  }
 }
 
 app.listen(PORT, () => {
