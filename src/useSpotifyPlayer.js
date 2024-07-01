@@ -23,7 +23,7 @@ const useSpotifyPlayer = (token) => {
     };
 
     const initializeSpotifyPlayer = () => {
-      window.onSpotifyWebPlaybackSDKReady = () => {
+      if (window.Spotify) {
         const player = new window.Spotify.Player({
           name: 'Web Playback SDK',
           getOAuthToken: cb => { cb(token); },
@@ -41,10 +41,16 @@ const useSpotifyPlayer = (token) => {
 
         player.connect();
         setPlayer(player);
-      };
+      }
     };
 
-    loadSpotifySdk().then(initializeSpotifyPlayer);
+    loadSpotifySdk().then(() => {
+      if (!window.onSpotifyWebPlaybackSDKReady) {
+        window.onSpotifyWebPlaybackSDKReady = initializeSpotifyPlayer;
+      } else {
+        initializeSpotifyPlayer();
+      }
+    });
   }, [token]);
 
   return { player, deviceId };
