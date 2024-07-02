@@ -85,7 +85,8 @@ async function getPlaylistFromSpotify(mood) {
     const tracks = tracksData.body.items.map(item => ({
       name: item.track.name,
       artist: item.track.artists.map(artist => artist.name).join(', '),
-      uri: item.track.uri
+      uri: item.track.uri,
+      preview_url: item.track.preview_url // Fetch the preview URL
     }));
 
     return {

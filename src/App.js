@@ -37,11 +37,27 @@ function App() {
     }
   };
 
+  const playSong = (uri) => {
+    if (player && deviceId) {
+      player._options.getOAuthToken(accessToken => {
+        fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ uris: [uri] }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          },
+        });
+      });
+    }
+  };
+
   const playNextTrack = () => {
     const currentTrackIndex = playlist.tracks.findIndex(track => track.uri === currentTrack.uri);
     const nextTrack = playlist.tracks[currentTrackIndex + 1];
     if (nextTrack) {
       setCurrentTrack(nextTrack);
+      playSong(nextTrack.uri);
     }
   };
 
@@ -60,7 +76,7 @@ function App() {
           {currentTrack && (
             <AudioPlayer
               autoPlay
-              src={currentTrack.uri}
+              src={currentTrack.preview_url} // preview_url is a short clip of the song, available from Spotify API
               onEnded={playNextTrack}
               showSkipControls={true}
               showJumpControls={false}
@@ -77,3 +93,4 @@ function App() {
 }
 
 export default App;
+
